@@ -1,16 +1,51 @@
 # flutter_timer
 
-A new Flutter project.
+- web: https://bloclibrary.dev/tutorials/flutter-timer/
+- source: https://github.com/felangel/bloc/tree/master/examples
 
-## Getting Started
+## Bloc
 
-This project is a starting point for a Flutter application.
+```mermaid
+graph LR
+  User --event--> Bloc
+  Bloc --state--> UI
+  subgraph Bloc
+    direction BT
+    Clock --"_ticked(duration)"--> func
+  end
+```
 
-A few resources to get you started if this is your first Flutter project:
+将一个Clock内置在Bloc中触发内部事件`_ticked(duration)`
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+```
+state = initial(duration)
+      | runInProgress(duration)
+      | runPause(duration)
+      | runComplete(duration)
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```
+event = stated(duration)
+      | paused 
+      | resumed 
+      | reset 
+      | _ticked(duration)
+```
+
+```
+bloc =
+      | started -> runInProgress & _ticker.publish(_ticked)
+      | paused  -> switch(state)
+                    | runInProgress  -> runPause & _ticker.pause()
+                    | _              -> state
+      | resumed -> switch(state)
+                    | runPause       -> runInProgress & _ticker.resume()
+                    | _              -> state
+      | reset   -> initial & _ticker.cancel()
+      | _ticked -> duration > 0 
+                    ? RunInProgress
+                    : RunComplete
+```
+
+## 约束
+
